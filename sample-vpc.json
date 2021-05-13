@@ -1,0 +1,79 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "A temaplate to provision vpc and subnets",
+    "Parameters": {
+      "VpcCidr": {
+          "Description": "Choose vpc cidr",
+          "Type": "String",
+          "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+          "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28"
+      },
+      "PublicSubnetCidr": {
+        "Description": "Choose Public Subnet cidr",
+        "Type": "String",
+        "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+        "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+      },
+      "PrivateSubnetCidr": {
+        "Description": "Choose Private Subnet cidr",
+        "Type": "String",
+        "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+        "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28"
+      }
+    },
+    "Resources": {
+      "StacksetVpc": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+          "CidrBlock": { "Ref": "VpcCidr" },
+          "Tags": [{
+              "Key" : "Name",
+              "Value" : "Stackset-vpc"
+            }
+          ]
+        }
+      },
+      "StacksetPublicSubnet": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "AvailabilityZone" : { "Fn::Select" : [ "0", { "Fn::GetAZs" : "" } ]},
+          "VpcId": { "Ref": "StacksetVpc" },
+          "CidrBlock": { "Ref": "PublicSubnetCidr" },
+          "Tags": [{
+            "Key": "Name",
+            "Value": "Stackset-PublicSubnet"
+            }]
+        }
+      },
+      "StacksetPrivateSubnet": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+        "AvailabilityZone" : { "Fn::Select" : [ "1", { "Fn::GetAZs" : "" } ]},
+          "VpcId": { "Ref": "StacksetVpc" },
+          "CidrBlock": { "Ref": "PrivateSubnetCidr" },
+          "Tags": [{
+            "Key": "Name",
+            "Value": "Stackset-PrivateSubnet"
+            }]
+        }
+      }
+    },
+    "Outputs":{
+      "VpcID": {
+        "Description": "Vpc ID",
+        "Value": { "Ref": "StacksetVpc" }
+      },
+      "SubnetIDs": {
+        "Description": "A list of Subnet Ids",
+        "Value": { "Fn::Join" : [ ",", [ { "Ref": "StacksetPublicSubnet" }, { "Ref": "StacksetPrivateSubnet" } ] ] }
+      },
+      "PublicSunetID": {
+        "Description": "Public Subnet ID",
+        "Value": { "Ref": "StacksetPublicSubnet" }
+      },
+      "PrivateSunetID": {
+        "Description": "Private Subnet ID",
+        "Value": { "Ref": "StacksetPrivateSubnet" }
+      }
+    }
+}
