@@ -1,0 +1,59 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "A temaplate to provision vpc and subnets",
+    "Resources": {
+      "StacksetVpc": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+          "CidrBlock": "10.0.0.0/16",
+          "Tags": [{
+              "Key" : "Name",
+              "Value" : "Stackset-vpc"
+            }
+          ]
+        }
+      },
+      "StacksetPublicSubnet": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "AvailabilityZone" : { "Fn::Select" : [ "0", { "Fn::GetAZs" : "" } ]},
+          "VpcId": { "Ref": "StacksetVpc" },
+          "CidrBlock": "10.0.1.0/24",
+          "Tags": [{
+            "Key": "Name",
+            "Value": "Stackset-PublicSubnet"
+            }]
+        }
+      },
+      "StacksetPrivateSubnet": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+        "AvailabilityZone" : { "Fn::Select" : [ "1", { "Fn::GetAZs" : "" } ]},
+          "VpcId": { "Ref": "StacksetVpc" },
+          "CidrBlock": "10.0.2.0/24",
+          "Tags": [{
+            "Key": "Name",
+            "Value": "Stackset-PrivateSubnet"
+            }]
+        }
+      }
+    },
+    "Outputs":{
+      "VpcID": {
+        "Description": "Vpc ID",
+        "Value": { "Ref": "StacksetVpc" }
+      },
+      "SubnetIDs": {
+        "Description": "A list of Subnet Ids",
+        "Value": { "Fn::Join" : [ ",", [ { "Ref": "StacksetPublicSubnet" }, { "Ref": "StacksetPrivateSubnet" } ] ] }
+      },
+      "PublicSunetID": {
+        "Description": "Public Subnet ID",
+        "Value": { "Ref": "StacksetPublicSubnet" }
+      },
+      "PrivateSunetID": {
+        "Description": "Private Subnet ID",
+        "Value": { "Ref": "StacksetPrivateSubnet" }
+      }
+    }
+}
